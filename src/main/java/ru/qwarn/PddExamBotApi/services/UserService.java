@@ -1,5 +1,6 @@
 package ru.qwarn.PddExamBotApi.services;
 
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.qwarn.PddExamBotApi.models.User;
@@ -10,25 +11,18 @@ import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
+@AllArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
     @Transactional
     public void save(User user){
-            userRepository.save(user);
+        userRepository.save(user);
     }
 
     public User findByChatId(long chatId){
         Optional<User> user = userRepository.findByChatId(chatId);
-
-        if (user.isEmpty()){
-            return null;
-        }
-
-        return user.get();
+        return user.isEmpty() ? null : user.get();
     }
 }

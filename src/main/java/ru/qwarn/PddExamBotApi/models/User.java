@@ -8,7 +8,7 @@ import lombok.Setter;
 import java.util.List;
 
 @Entity
-@Table(name = "telegram_user")
+@Table(name = "\"user\"")
 @Setter
 @Getter
 @NoArgsConstructor
@@ -21,12 +21,13 @@ public class User {
 
     @Column(name = "chat_id")
     private long chatId;
+
     @Column(name = "fails_count")
     private int failsCount;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "current_ticket_id")
-    private Ticket ticket;
+
+    @Column(name = "task_type")
+    private String taskType;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "current_question_id")

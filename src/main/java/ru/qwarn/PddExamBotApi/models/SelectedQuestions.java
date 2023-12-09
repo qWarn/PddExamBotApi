@@ -20,7 +20,7 @@ public class SelectedQuestions implements Serializable {
     private int id;
 
     @ManyToOne
-    @JoinColumn(name = "telegram_user_id")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne

@@ -33,3 +33,8 @@ build/
 .vscode/
 
 src/main/resources/application.yml
+src/main/java/ru/qwarn/PddExamBotApi/controllers/PddParserController.java
+src/main/java/ru/qwarn/PddExamBotApi/utils/ParserConstants.java
+src/main/java/ru/qwarn/PddExamBotApi/utils/Parser.java
+
+postgres.env

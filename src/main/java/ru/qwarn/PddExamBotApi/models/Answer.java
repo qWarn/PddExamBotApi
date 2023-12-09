@@ -23,7 +23,7 @@ public class Answer {
     @Column(name = "order_in_question")
     private int orderInQuestion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "question_id" )
     private Question question;
 
@@ -32,6 +32,5 @@ public class Answer {
         this.answerText = answer;
         this.orderInQuestion = orderInQuestion;
     }
-
 
 }

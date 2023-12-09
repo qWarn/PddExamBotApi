@@ -28,7 +28,7 @@ public class Question {
     private String description;
 
     @Column(name = "order_in_ticket")
-    private int orderInThicket;
+    private int orderInTicket;
 
     @Column(name = "correct_answer_number")
     private int correctAnswerNumber;
@@ -36,9 +36,13 @@ public class Question {
     @Column(name = "correct_answer_explanation")
     private String correctAnswerExplanation;
 
-    @ManyToOne
-    @JoinColumn(name = "ticket_id" )
-    private Ticket ticket;
+    @Column(name = "fails_count")
+    private long failsCount;
+
+
+    @JoinColumn(name = "ticket_number" )
+    private int ticketNumber;
+
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "question")
     private List<Answer> answers = new ArrayList<>();
@@ -49,10 +53,10 @@ public class Question {
     @OneToMany(mappedBy = "question")
     private List<SelectedQuestions> selectedQuestions = new ArrayList<>();
 
-    public Question(String imageURI, String description, int orderInThicket, int correctAnswerNumber, String correctAnswerDescription) {
+    public Question(String imageURI, String description, int orderInTicket, int correctAnswerNumber, String correctAnswerDescription) {
         this.imageURI = imageURI;
         this.description = description;
-        this.orderInThicket = orderInThicket;
+        this.orderInTicket = orderInTicket;
         this.correctAnswerNumber = correctAnswerNumber;
         this.correctAnswerExplanation = correctAnswerDescription;
     }
