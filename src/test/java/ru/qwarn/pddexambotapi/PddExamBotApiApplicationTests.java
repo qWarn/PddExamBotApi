@@ -1,4 +1,4 @@
-package ru.qwarn.PddExamBotApi;
+package ru.qwarn.pddexambotapi;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

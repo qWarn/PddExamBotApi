@@ -1,12 +1,12 @@
-package ru.qwarn.PddExamBotApi.services;
+package ru.qwarn.pddexambotapi.services;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.qwarn.PddExamBotApi.models.Question;
-import ru.qwarn.PddExamBotApi.models.SelectedQuestions;
-import ru.qwarn.PddExamBotApi.models.User;
-import ru.qwarn.PddExamBotApi.repositories.SelectedQuestionsRepository;
+import ru.qwarn.pddexambotapi.models.Question;
+import ru.qwarn.pddexambotapi.models.SelectedQuestions;
+import ru.qwarn.pddexambotapi.models.User;
+import ru.qwarn.pddexambotapi.repositories.SelectedQuestionsRepository;
 
 
 import java.util.List;
@@ -17,6 +17,8 @@ import java.util.Random;
 @Transactional(readOnly = true)
 @AllArgsConstructor
 public class SelectedQuestionsService {
+
+    private final Random random;
 
     private final SelectedQuestionsRepository selectedQuestionsRepository;
 
@@ -50,7 +52,7 @@ public class SelectedQuestionsService {
 
     public Question getNextQuestionFromSelected(List<SelectedQuestions> selectedQuestions){
         SelectedQuestions selectedQuestion = selectedQuestions.get(
-                selectedQuestions.size() == 1 ? 0 : new Random().nextInt(selectedQuestions.size()-1));
+                selectedQuestions.size() == 1 ? 0 : random.nextInt(selectedQuestions.size()-1));
         selectedQuestion.setAlreadyWas(true);
         save(selectedQuestion);
         return selectedQuestion.getQuestion();

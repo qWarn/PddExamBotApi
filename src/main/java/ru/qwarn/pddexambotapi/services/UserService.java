@@ -1,10 +1,10 @@
-package ru.qwarn.PddExamBotApi.services;
+package ru.qwarn.pddexambotapi.services;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.qwarn.PddExamBotApi.models.User;
-import ru.qwarn.PddExamBotApi.repositories.UserRepository;
+import ru.qwarn.pddexambotapi.models.User;
+import ru.qwarn.pddexambotapi.repositories.UserRepository;
 
 
 import java.util.Optional;

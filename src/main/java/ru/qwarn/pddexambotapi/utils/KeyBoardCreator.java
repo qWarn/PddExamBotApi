@@ -1,12 +1,12 @@
-package ru.qwarn.PddExamBotApi.utils;
+package ru.qwarn.pddexambotapi.utils;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import ru.qwarn.PddExamBotApi.models.Answer;
-import ru.qwarn.PddExamBotApi.models.Question;
+import ru.qwarn.pddexambotapi.models.Answer;
+import ru.qwarn.pddexambotapi.models.Question;
 
 import java.util.ArrayList;
 import java.util.List;

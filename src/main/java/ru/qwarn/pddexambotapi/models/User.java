@@ -1,4 +1,4 @@
-package ru.qwarn.PddExamBotApi.models;
+package ru.qwarn.pddexambotapi.models;
 
 import jakarta.persistence.*;
 import lombok.Getter;

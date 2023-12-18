@@ -1,4 +1,4 @@
-package ru.qwarn.PddExamBotApi.utils;
+package ru.qwarn.pddexambotapi.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -6,14 +6,15 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
-import ru.qwarn.PddExamBotApi.exceptions.InvalidAnswerException;
-import ru.qwarn.PddExamBotApi.models.Answer;
-import ru.qwarn.PddExamBotApi.models.Question;
-import ru.qwarn.PddExamBotApi.models.User;
-import ru.qwarn.PddExamBotApi.services.AnswerService;
-import ru.qwarn.PddExamBotApi.services.SelectedQuestionsService;
-import ru.qwarn.PddExamBotApi.services.UserService;
+import ru.qwarn.pddexambotapi.exceptions.InvalidAnswerException;
+import ru.qwarn.pddexambotapi.models.Answer;
+import ru.qwarn.pddexambotapi.models.Question;
+import ru.qwarn.pddexambotapi.models.User;
+import ru.qwarn.pddexambotapi.services.AnswerService;
+import ru.qwarn.pddexambotapi.services.SelectedQuestionsService;
+import ru.qwarn.pddexambotapi.services.UserService;
 
+import java.rmi.UnexpectedException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,8 @@ public class MessageCreator {
     private final KeyBoardCreator keyBoardCreator;
     private final SelectedQuestionsService selectedQuestionsService;
     private final AnswerService answerService;
+
+    private static final String FINISH_MESSAGE_TEXT = "Вы совершили %d %s";
 
     public SendMessage createTicketsMessage(User user, int from, int to) {
         user.setTaskType("none");
@@ -39,7 +42,7 @@ public class MessageCreator {
                 .build();
     }
 
-    public SendMessage createAnswer(long chatId, int answerNumber, Question question, User user){
+    public SendMessage createAnswer(long chatId, int answerNumber, Question question, User user) throws UnexpectedException {
         if (answerNumber > answerService.getQuestionAnswers(question.getId()).size() || answerNumber <= 0){
             throw new InvalidAnswerException("Ответ под номером " + answerNumber + " не существует!");
         }
@@ -67,15 +70,15 @@ public class MessageCreator {
         userService.save(user);
         int fails = user.getFailsCount();
 
-        return SendMessage.builder().text(fails > 4 || fails == 0? "Вы совершили " + user.getFailsCount() + " ошибок."
-                    : fails == 1? "Вы совершили " + user.getFailsCount() + " ошибку."
-                        : "Вы совершили " + user.getFailsCount() + " ошибки.")
+
+
+        return SendMessage.builder().text(getFinishMessageText(fails))
                 .replyMarkup(keyBoardCreator.createInlineMarkupForFinishMessage())
                 .chatId(chatId)
                 .build();
     }
 
-    public SendMessage createQuestionWithoutMessage(long chatId, Question question) {
+    public SendMessage createQuestionWithoutMessage(long chatId, Question question) throws UnexpectedException {
         List<Answer> answers = answerService.getQuestionAnswers(question.getId());
 
         return SendMessage.builder()
@@ -106,5 +109,15 @@ public class MessageCreator {
                 .chatId(chatId)
                 .replyMarkup(keyBoardCreator.createInlineMarkupForFinishMessage())
                 .build();
+    }
+
+    private String getFinishMessageText(int failsCount){
+        if (failsCount == 0){
+          return String.format(FINISH_MESSAGE_TEXT, failsCount, "ошибок.");
+        }
+        return
+        String.format(FINISH_MESSAGE_TEXT,
+                failsCount,
+                 failsCount == 1? "ошибку." : "ошибки.");
     }
 }
