@@ -18,7 +18,7 @@ import ru.qwarn.pddexambotapi.services.UserService;
 @RestController
 @Slf4j
 @RequestMapping("/bot/api")
-@RequiredArgsConstructor // TODO: использовать одинаковый подход
+@RequiredArgsConstructor
 public class TelegramBotController {
 
     private final UserService userService;
