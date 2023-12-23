@@ -17,17 +17,14 @@ public class AnswerService {
 
     private final AnswerRepository answerRepository;
 
-    public List<Answer> getQuestionAnswers(int questionId) throws UnexpectedException {
-        List<Answer> answers = answerRepository.getByQuestionId(questionId);
-        if (answers.isEmpty()){
-            throw new UnexpectedException("List of entities is empty.");
-        }
-        return answers;
+    public List<Answer> getQuestionAnswers(int questionId) {
+        return answerRepository.getByQuestionId(questionId);
 
     }
+
     @Transactional
     public void saveAnswer(Answer answer) throws UnexpectedException {
-        if (answer == null){
+        if (answer == null) {
             throw new UnexpectedException("Answer is null.");
         }
 
@@ -35,7 +32,7 @@ public class AnswerService {
     }
 
     @Transactional
-    public void deleteAllAnswers(){
+    public void deleteAllAnswers() {
         answerRepository.deleteAll();
     }
 

@@ -16,14 +16,5 @@ public class PddExamBotApiApplication {
 		SpringApplication.run(PddExamBotApiApplication.class, args);
 	}
 
-	@Bean
-	public Random random(){
-		return new Random();
-	}
-
-	@Bean
-	public Logger logger(){
-		return LoggerFactory.getLogger(TelegramBotController.class);
-	}
 
 }

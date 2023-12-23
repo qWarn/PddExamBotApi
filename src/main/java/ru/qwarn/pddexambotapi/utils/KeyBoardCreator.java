@@ -1,5 +1,7 @@
 package ru.qwarn.pddexambotapi.utils;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -10,25 +12,28 @@ import ru.qwarn.pddexambotapi.models.Question;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Component
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class KeyBoardCreator {
 
-    protected InlineKeyboardMarkup createInlineKeyBoardMarkupForTickets(int from, int to){
+
+    protected static InlineKeyboardMarkup createInlineKeyBoardMarkupForTickets(int from, int to) {
         List<List<InlineKeyboardButton>> keyBoard = new ArrayList<>();
         List<InlineKeyboardButton> buttons = new ArrayList<>();
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
 
-        for (int i = from; i <= to; i++) {
+        IntStream.range(from, to).forEach(i -> {
             InlineKeyboardButton button = new InlineKeyboardButton();
             button.setText(String.valueOf(i));
             button.setCallbackData("ticket " + i);
             buttons.add(button);
-            if (i % 5 == 0){
-                keyBoard.add(buttons);
-                buttons = new ArrayList<>();
+            if (i % 5 == 0) {
+                keyBoard.add(new ArrayList<>(buttons));
+                buttons.clear();
             }
-        }
+        });
 
         InlineKeyboardButton selectedButton = new InlineKeyboardButton();
         selectedButton.setText("Избранное");
@@ -40,7 +45,7 @@ public class KeyBoardCreator {
         if (from == 1) {
             nextThicketsButton.setText("Далее");
             nextThicketsButton.setCallbackData("nextTickets");
-        }else {
+        } else {
             nextThicketsButton.setText("Назад");
             nextThicketsButton.setCallbackData("prevTickets");
         }
@@ -51,49 +56,40 @@ public class KeyBoardCreator {
         return inlineKeyboardMarkup;
     }
 
-    protected InlineKeyboardMarkup createAddQuestionToSelectedMarkup(Question question){
+    protected static InlineKeyboardMarkup createAddQuestionToSelectedMarkup(Question question) {
+        return getInlineKeyboardMarkup("В избранное", "addToSelected " + question.getId());
+    }
+
+    protected static InlineKeyboardMarkup createRemoveQuestionFromSelectedMarkup(Question question) {
+        return getInlineKeyboardMarkup("Убрать из избранного", "removeFromSelected " + question.getId());
+    }
+
+    protected static InlineKeyboardMarkup createInlineMarkupForFinishMessage() {
+        return getInlineKeyboardMarkup("К билетам.", "backToTickets");
+    }
+
+    private static InlineKeyboardMarkup getInlineKeyboardMarkup(String text, String backToTickets) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         InlineKeyboardButton selectedButton = new InlineKeyboardButton();
-        selectedButton.setText("В избранное");
-        selectedButton.setCallbackData("addToSelected " + question.getId());
+        selectedButton.setText(text);
+        selectedButton.setCallbackData(backToTickets);
         List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
         buttons.add(List.of(selectedButton));
         markup.setKeyboard(buttons);
         return markup;
     }
 
-    protected InlineKeyboardMarkup createRemoveQuestionFromSelectedMarkup(Question question){
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        InlineKeyboardButton selectedButton = new InlineKeyboardButton();
-        selectedButton.setText("Убрать из избранного");
-        selectedButton.setCallbackData("removeFromSelected " + question.getId());
-        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
-        buttons.add(List.of(selectedButton));
-        markup.setKeyboard(buttons);
-        return markup;
-    }
-
-    protected InlineKeyboardMarkup createInlineMarkupForFinishMessage(){
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        InlineKeyboardButton selectedButton = new InlineKeyboardButton();
-        selectedButton.setText("К билетам.");
-        selectedButton.setCallbackData("backToTickets");
-        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
-        buttons.add(List.of(selectedButton));
-        markup.setKeyboard(buttons);
-        return markup;
-    }
-
-    protected ReplyKeyboardMarkup createReplyKeyBoardMarkupForAnswers(List<Answer> answers){
+    protected static ReplyKeyboardMarkup createReplyKeyBoardMarkupForAnswers(List<Answer> answers) {
 
         ReplyKeyboardMarkup markup1 = new ReplyKeyboardMarkup();
         List<KeyboardRow> keyboardRows = new ArrayList<>();
 
-        for (Answer answer : answers) {
+        answers.forEach(answer -> {
             KeyboardRow row = new KeyboardRow();
             row.add(String.valueOf(answer.getOrderInQuestion()));
             keyboardRows.add(row);
-        }
+        });
+
         KeyboardRow exitButton = new KeyboardRow();
         exitButton.add("Выйти");
         keyboardRows.add(exitButton);

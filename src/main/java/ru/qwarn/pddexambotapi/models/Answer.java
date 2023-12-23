@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "answer")
 @NoArgsConstructor
 @Getter
 @Setter
@@ -24,7 +23,7 @@ public class Answer {
     private int orderInQuestion;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "question_id" )
+    @JoinColumn(name = "question_id")
     private Question question;
 
 

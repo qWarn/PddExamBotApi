@@ -16,6 +16,7 @@
 	<properties>
 		<java.version>17</java.version>
 		<telegrambots.version>6.8.0</telegrambots.version>
+		<selenium-java.version>4.15.0</selenium-java.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -55,7 +56,8 @@
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-java</artifactId>
-			<version>4.15.0</version>
+<!--			ctrl alt v-->
+			<version>${selenium-java.version}</version>
 		</dependency>
 
 
