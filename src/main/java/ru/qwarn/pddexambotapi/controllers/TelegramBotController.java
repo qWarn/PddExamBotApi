@@ -1,5 +1,9 @@
 package ru.qwarn.pddexambotapi.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,17 +22,22 @@ import ru.qwarn.pddexambotapi.services.UserService;
 @RestController
 @Slf4j
 @RequestMapping("/bot/api")
-@RequiredArgsConstructor // TODO: использовать одинаковый подход
+@RequiredArgsConstructor
 public class TelegramBotController {
 
     private final UserService userService;
     private final QuestionService questionService;
 
+    @Operation(summary = "Register user in db and send start message or send message with tickets if user already exists")
+    @ApiResponse(responseCode = "200", description = "Registered user or sent message with tickets",
+    content = {@Content(mediaType = "application/json", schema =  @Schema(implementation = SendMessage.class))})
     @PostMapping("/start/{chatId}")
     public ResponseEntity<SendMessage> startBot(@PathVariable long chatId) {
         return userService.addUserOrSendTickets(chatId);
     }
 
+
+    @Operation(summary = "Send user message with tickets")
     @PatchMapping("/tickets/{chatId}")
     public ResponseEntity<SendMessage> showTickets(@PathVariable long chatId,
                                                    @RequestParam(required = false) boolean next) {
@@ -75,6 +84,7 @@ public class TelegramBotController {
     public ResponseEntity<String> handleInvalidAnswer(InvalidAnswerException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
+
 
     @ExceptionHandler
     public ResponseEntity<String> handleSelectedQuestionIsEmpty(SelectedQuestionsIsEmptyException e) {
