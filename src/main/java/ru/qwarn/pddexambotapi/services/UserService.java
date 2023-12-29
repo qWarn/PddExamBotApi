@@ -16,6 +16,10 @@ import ru.qwarn.pddexambotapi.models.User;
 import ru.qwarn.pddexambotapi.repositories.UserRepository;
 import ru.qwarn.pddexambotapi.utils.MessageCreator;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -28,8 +32,9 @@ public class UserService {
     private final AnswerService answerService;
     private final SelectedQuestionsService selectedQuestionsService;
 
-
+    @Transactional
     public void save(User user) {
+        user.setLastActive(Timestamp.from(Instant.now()));
         userRepository.save(user);
     }
 
@@ -42,7 +47,7 @@ public class UserService {
         Optional<User> user = findByChatId(chatId);
 
         if (user.isEmpty()) {
-            userRepository.save(new User(chatId));
+            save(new User(chatId));
             return new ResponseEntity<>(messageCreator.createMessageForNewUser(chatId), HttpStatus.OK);
         }
 
@@ -93,5 +98,12 @@ public class UserService {
         int fails = user.getFailsCount();
 
         return ResponseEntity.ok(MessageCreator.createFinishMessage(chatId, fails));
+    }
+
+    public List<User> getUsersWithLastActiveMoreThanTwoDays() {
+        return userRepository.findAll().stream()
+                .filter(user -> user.getLastActive().toInstant()
+                        .isBefore(Instant.now().minus(2, ChronoUnit.DAYS)))
+                .toList();
     }
 }

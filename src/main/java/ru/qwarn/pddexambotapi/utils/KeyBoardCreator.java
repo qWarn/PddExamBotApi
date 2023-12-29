@@ -18,7 +18,6 @@ import java.util.stream.IntStream;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class KeyBoardCreator {
 
-
     protected static InlineKeyboardMarkup createInlineKeyBoardMarkupForTickets(int from, int to) {
         List<List<InlineKeyboardButton>> keyBoard = new ArrayList<>();
         List<InlineKeyboardButton> buttons = new ArrayList<>();

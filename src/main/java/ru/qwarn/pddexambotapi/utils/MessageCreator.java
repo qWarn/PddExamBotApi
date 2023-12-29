@@ -88,6 +88,13 @@ public class MessageCreator {
                         failsCount == 1 ? "ошибку." : "ошибки.");
     }
 
+    public static SendMessage createNotificationMessage(User user) {
+        return SendMessage.builder()
+                .text("Вы не решали билеты уже 2 дня. Пора бы зайти и порешать!")
+                .chatId(user.getChatId())
+                .build();
+    }
+
     public SendMessage createMessageForNewUser(long chatId) {
         return SendMessage.builder().chatId(chatId)
                 .text("Привет! \n Этот телеграм бот создан для подготовки к экзамену ПДД. \n Он содержит все 40 актуальных билетов на 2023 год.")

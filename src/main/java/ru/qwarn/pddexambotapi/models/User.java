@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Entity(name = "\"user\"")
@@ -28,12 +29,16 @@ public class User {
     @Column(name = "task_type")
     private String taskType;
 
+    @Column(name = "last_active")
+    private Timestamp lastActive;
+
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "current_question_id")
     private Question question;
 
     @OneToMany(mappedBy = "user")
     private List<SelectedQuestions> selectedQuestions;
+
 
     public User(long chatId) {
         this.chatId = chatId;
