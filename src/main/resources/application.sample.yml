@@ -15,3 +15,7 @@ spring:
 kafka:
   topics:
     notificationTopic:
+
+springdoc:
+  swagger-ui:
+    path:
