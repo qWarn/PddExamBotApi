@@ -37,6 +37,11 @@ src/main/java/ru/qwarn/pddexambotapi/controllers/PddParserController.java
 src/main/java/ru/qwarn/pddexambotapi/utils/ParserConstants.java
 src/main/java/ru/qwarn/pddexambotapi/utils/Parser.java
 
+src/test/java/ru/qwarn/pddexambotapi/controllers
+src/test/java/ru/qwarn/pddexambotapi/services
+
+target
+
 postgres.env
 
 
