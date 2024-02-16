@@ -1,6 +1,7 @@
 package ru.qwarn.pddexambotapi.utils;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -8,7 +9,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import ru.qwarn.pddexambotapi.models.Answer;
 import ru.qwarn.pddexambotapi.models.Question;
-import ru.qwarn.pddexambotapi.models.SelectedQuestions;
+import ru.qwarn.pddexambotapi.models.Selected;
 import ru.qwarn.pddexambotapi.models.User;
 
 import java.util.List;
@@ -16,22 +17,23 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MessageCreator {
 
 
     private static final String FINISH_MESSAGE_TEXT = "Вы совершили %d %s";
 
-    public static SendMessage createTicketsMessage(User user, int from, int to) {
+    public static SendMessage createTicketsMessage(User user, boolean next) {
+
         return SendMessage.builder()
                 .chatId(user.getChatId())
                 .text("Выберите номер билета для тренировки:")
-                .replyMarkup(KeyBoardCreator.createInlineKeyBoardMarkupForTickets(from, to))
+                .replyMarkup(KeyBoardCreator.createInlineKeyBoardMarkupForTickets(next))
                 .build();
     }
 
     public static SendMessage createAnswer(long chatId, Question question,
-                                           Optional<SelectedQuestions> selectedQuestion,
+                                           Optional<Selected> selectedQuestion,
                                            boolean isCorrect) {
 
         String text = (isCorrect ? "Вы ответили правильно!" + "\n" : "Вы ответили неправильно!" + "\n") +
@@ -95,7 +97,7 @@ public class MessageCreator {
                 .build();
     }
 
-    public SendMessage createMessageForNewUser(long chatId) {
+    public static SendMessage createMessageForNewUser(long chatId) {
         return SendMessage.builder().chatId(chatId)
                 .text("Привет! \n Этот телеграм бот создан для подготовки к экзамену ПДД. \n Он содержит все 40 актуальных билетов на 2023 год.")
                 .chatId(chatId)
