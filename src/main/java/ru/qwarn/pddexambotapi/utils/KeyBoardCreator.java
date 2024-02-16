@@ -18,7 +18,10 @@ import java.util.stream.IntStream;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class KeyBoardCreator {
 
-    protected static InlineKeyboardMarkup createInlineKeyBoardMarkupForTickets(int from, int to) {
+    protected static InlineKeyboardMarkup createInlineKeyBoardMarkupForTickets(boolean next) {
+        int from = next ? 21 : 1;
+        int to = from + 20;
+
         List<List<InlineKeyboardButton>> keyBoard = new ArrayList<>();
         List<InlineKeyboardButton> buttons = new ArrayList<>();
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
@@ -90,7 +93,7 @@ public class KeyBoardCreator {
         });
 
         KeyboardRow exitButton = new KeyboardRow();
-        exitButton.add("Выйти");
+        exitButton.add("К билетам");
         keyboardRows.add(exitButton);
 
         markup1.setKeyboard(keyboardRows);
