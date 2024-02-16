@@ -1,18 +1,15 @@
 package ru.qwarn.pddexambotapi.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
 @Entity
+@Data
 @NoArgsConstructor
-@Setter
-@Getter
 public class Question {
 
     @Id
@@ -46,11 +43,12 @@ public class Question {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "question")
     private List<Answer> answers = new ArrayList<>();
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<User> users = new ArrayList<>();
 
     @OneToMany(mappedBy = "question")
-    private List<SelectedQuestions> selectedQuestions = new ArrayList<>();
+    private List<Selected> selected = new ArrayList<>();
 
     public Question(String imageURI, String description, int orderInTicket, int correctAnswerNumber, String correctAnswerDescription) {
         this.imageURI = imageURI;

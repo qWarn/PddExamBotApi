@@ -1,14 +1,11 @@
 package ru.qwarn.pddexambotapi.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
 public class Answer {
 
     @Id
@@ -22,6 +19,7 @@ public class Answer {
     @Column(name = "order_in_question")
     private int orderInQuestion;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "question_id")
     private Question question;

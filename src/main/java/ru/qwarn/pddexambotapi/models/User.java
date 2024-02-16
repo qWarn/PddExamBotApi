@@ -1,30 +1,23 @@
 package ru.qwarn.pddexambotapi.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.sql.Timestamp;
 import java.util.List;
 
 @Entity(name = "\"user\"")
-@Setter
-@Getter
+@Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     @Id
-    @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-
     @Column(name = "chat_id")
     private long chatId;
 
     @Column(name = "fails_count")
     private int failsCount;
-
 
     @Column(name = "task_type")
     private String taskType;
@@ -37,8 +30,7 @@ public class User {
     private Question question;
 
     @OneToMany(mappedBy = "user")
-    private List<SelectedQuestions> selectedQuestions;
-
+    private List<Selected> selected;
 
     public User(long chatId) {
         this.chatId = chatId;
