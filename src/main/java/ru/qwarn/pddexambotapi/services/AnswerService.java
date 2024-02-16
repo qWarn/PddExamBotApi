@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.qwarn.pddexambotapi.models.Answer;
 import ru.qwarn.pddexambotapi.repositories.AnswerRepository;
 
-import java.rmi.UnexpectedException;
 import java.util.List;
 
 
@@ -17,18 +16,13 @@ public class AnswerService {
 
     private final AnswerRepository answerRepository;
 
-    public List<Answer> getQuestionAnswers(int questionId) {
+    public List<Answer> getAnswers(int questionId) {
         return answerRepository.getByQuestionId(questionId);
-
     }
 
     @Transactional
-    public void saveAnswer(Answer answer) throws UnexpectedException {
-        if (answer == null) {
-            throw new UnexpectedException("Answer is null.");
-        }
-
-        answerRepository.save(answer);
+    public Answer saveAnswer(Answer answer) {
+        return answerRepository.save(answer);
     }
 
     @Transactional

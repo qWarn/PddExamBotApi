@@ -8,15 +8,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
-import ru.qwarn.pddexambotapi.exceptions.InvalidAnswerException;
-import ru.qwarn.pddexambotapi.exceptions.QuestionNotFoundException;
+import ru.qwarn.pddexambotapi.exceptions.ListIsEmptyException;
 import ru.qwarn.pddexambotapi.exceptions.UserDoesntExistsException;
-import ru.qwarn.pddexambotapi.models.Question;
 import ru.qwarn.pddexambotapi.models.User;
 import ru.qwarn.pddexambotapi.repositories.UserRepository;
 import ru.qwarn.pddexambotapi.utils.MessageCreator;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -28,82 +25,53 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final MessageCreator messageCreator;
-    private final AnswerService answerService;
-    private final SelectedQuestionsService selectedQuestionsService;
 
-    @Transactional
-    public void save(User user) {
-        user.setLastActive(Timestamp.from(Instant.now()));
-        userRepository.save(user);
-    }
-
-    public Optional<User> findByChatId(long chatId) {
-        return userRepository.findByChatId(chatId);
+    public User getByChatId(long chatId) {
+        return userRepository.findByChatId(chatId).orElseThrow(UserDoesntExistsException::new);
     }
 
     @Transactional
-    public ResponseEntity<SendMessage> addUserOrSendTickets(long chatId) {
-        Optional<User> user = findByChatId(chatId);
-
-        if (user.isEmpty()) {
-            save(new User(chatId));
-            return new ResponseEntity<>(messageCreator.createMessageForNewUser(chatId), HttpStatus.OK);
-        }
-
-        return ResponseEntity.ok(MessageCreator.createTicketsMessage(user.get(), 1, 20));
-    }
-
-    @Transactional
-    public ResponseEntity<SendMessage> createMessageWithTickets(long chatId, boolean next) {
-        User user = findByChatId(chatId).orElseThrow(UserDoesntExistsException::new);
-        user.setTaskType("none");
+    public ResponseEntity<PartialBotApiMethod<Message>> endMessage(long chatId) {
+        User user = getByChatId(chatId);
         user.setQuestion(null);
-        user.setFailsCount(0);
 
-        save(user);
-
-        int from = next ? 21 : 1;
-        return ResponseEntity.ok(MessageCreator.createTicketsMessage(user, from, from + 20));
+        return ResponseEntity.ok()
+                .header("MessageType", "sendmessage")
+                .body(MessageCreator.createFinishMessage(
+                chatId, user.getFailsCount()
+        ));
     }
 
     @Transactional
-    public ResponseEntity<SendMessage> getAnswerResult(long chatId, int answerNumber) {
-        User user = findByChatId(chatId).orElseThrow(UserDoesntExistsException::new);
-        Question currQuestion = user.getQuestion();
-
-        if (currQuestion == null) {
-            throw new QuestionNotFoundException("Вы не выбрали билет!");
+    public ResponseEntity<SendMessage> sendGreetingOrTickets(long chatId){
+        Optional<User> optionalUser = userRepository.findByChatId(chatId);
+        if (optionalUser.isEmpty()){
+            userRepository.save(new User(chatId));
+            return new ResponseEntity<>(MessageCreator.createMessageForNewUser(chatId), HttpStatus.OK);
         }
-
-        if (answerNumber > answerService.getQuestionAnswers(currQuestion.getId()).size() || answerNumber <= 0) {
-            throw new InvalidAnswerException("Ответ под номером " + answerNumber + " не существует!");
-        }
-
-        boolean isCorrect = currQuestion.getCorrectAnswerNumber() == answerNumber;
-
-        user.setFailsCount(user.getFailsCount() + (isCorrect ? 0 : 1));
-
-
-        return ResponseEntity.ok(MessageCreator.createAnswer(chatId, currQuestion,
-                selectedQuestionsService.findByQuestionAndUser(currQuestion, user),
-                isCorrect));
+        return ResponseEntity.ok(MessageCreator.createTicketsMessage(optionalUser.get(), false));
     }
 
     @Transactional
-    public ResponseEntity<PartialBotApiMethod<Message>> getFinishMessage(long chatId) {
-        User user = findByChatId(chatId).orElseThrow(UserDoesntExistsException::new);
-
-        user.setQuestion(null);
-        int fails = user.getFailsCount();
-
-        return ResponseEntity.ok(MessageCreator.createFinishMessage(chatId, fails));
-    }
-
-    public List<User> getUsersWithLastActiveMoreThanTwoDays() {
-        return userRepository.findAll().stream()
-                .filter(user -> user.getLastActive().toInstant()
+    public List<SendMessage> getUsersWithLastActiveMoreThanTwoDays() {
+        List<SendMessage> messages = userRepository.findAll().stream()
+                .filter(user -> user.getLastActive() != null && user.getLastActive().toInstant()
                         .isBefore(Instant.now().minus(2, ChronoUnit.DAYS)))
+                .map(u -> {
+                    u.setLastActive(null);
+                    return SendMessage.builder()
+                            .chatId(u.getChatId()).text("Вы не решали билеты уже больше 2 дней!")
+                            .build();
+                })
                 .toList();
+
+        if (messages.isEmpty()){
+            throw new ListIsEmptyException("No users with last_active more than 2 days found");
+        }
+
+        return messages;
     }
+
+
+
 }
