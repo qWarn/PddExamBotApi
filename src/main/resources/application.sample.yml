@@ -9,13 +9,20 @@ spring:
       hibernate:
         show_sql:
         dialect:
-  kafka:
-    bootstrap-servers:
+  rabbitmq:
+    port:
+    host:
 
-kafka:
-  topics:
-    notificationTopic:
+
+rabbitmq:
+  exchange:
+  queue:
+  routingKey:
 
 springdoc:
   swagger-ui:
     path:
+
+server:
+  error:
+    include-message: always
