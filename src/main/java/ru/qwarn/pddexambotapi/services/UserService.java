@@ -26,30 +26,30 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+
     public User getByChatId(long chatId) {
-        return userRepository.findByChatId(chatId).orElseThrow(UserDoesntExistsException::new);
+        return userRepository.findById(chatId).orElseThrow(UserDoesntExistsException::new);
     }
 
     @Transactional
-    public ResponseEntity<PartialBotApiMethod<Message>> endMessage(long chatId) {
+    public ResponseEntity<PartialBotApiMethod<Message>> getFinishMessage(long chatId) {
         User user = getByChatId(chatId);
         user.setQuestion(null);
 
         return ResponseEntity.ok()
                 .header("MessageType", "sendmessage")
                 .body(MessageCreator.createFinishMessage(
-                chatId, user.getFailsCount()
-        ));
+                        chatId, user.getFailsCount()
+                ));
     }
 
     @Transactional
-    public ResponseEntity<SendMessage> sendGreetingOrTickets(long chatId){
-        Optional<User> optionalUser = userRepository.findByChatId(chatId);
-        if (optionalUser.isEmpty()){
+    public ResponseEntity<SendMessage> getGreetingMessage(long chatId) {
+        Optional<User> optionalUser = userRepository.findById(chatId);
+        if (optionalUser.isEmpty()) {
             userRepository.save(new User(chatId));
-            return new ResponseEntity<>(MessageCreator.createMessageForNewUser(chatId), HttpStatus.OK);
         }
-        return ResponseEntity.ok(MessageCreator.createTicketsMessage(optionalUser.get(), false));
+        return new ResponseEntity<>(MessageCreator.createGreetingMessage(chatId), HttpStatus.OK);
     }
 
     @Transactional
@@ -57,21 +57,18 @@ public class UserService {
         List<SendMessage> messages = userRepository.findAll().stream()
                 .filter(user -> user.getLastActive() != null && user.getLastActive().toInstant()
                         .isBefore(Instant.now().minus(2, ChronoUnit.DAYS)))
-                .map(u -> {
-                    u.setLastActive(null);
-                    return SendMessage.builder()
-                            .chatId(u.getChatId()).text("Вы не решали билеты уже больше 2 дней!")
-                            .build();
+                .map(user -> {
+                    user.setLastActive(null);
+                    return MessageCreator.createNotificationMessage(user.getChatId());
                 })
                 .toList();
 
-        if (messages.isEmpty()){
+        if (messages.isEmpty()) {
             throw new ListIsEmptyException("No users with last_active more than 2 days found");
         }
 
         return messages;
     }
-
 
 
 }
