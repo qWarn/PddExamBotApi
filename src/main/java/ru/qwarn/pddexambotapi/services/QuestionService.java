@@ -7,7 +7,6 @@ import ru.qwarn.pddexambotapi.exceptions.QuestionNotFoundException;
 import ru.qwarn.pddexambotapi.models.Question;
 import ru.qwarn.pddexambotapi.repositories.QuestionRepository;
 
-import java.rmi.UnexpectedException;
 
 
 @Service
@@ -28,10 +27,7 @@ public class QuestionService {
     }
 
     @Transactional
-    public Question saveQuestion(Question question) throws UnexpectedException {
-        if (question == null) {
-            throw new UnexpectedException("Question is null");
-        }
+    public Question saveQuestion(Question question) {
         return questionRepository.save(question);
     }
 
