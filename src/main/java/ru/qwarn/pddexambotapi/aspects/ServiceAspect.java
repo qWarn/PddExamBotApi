@@ -16,19 +16,19 @@ public class ServiceAspect {
 
     @Before(value = "serviceLayer()")
     public void logBefore(JoinPoint joinPoint){
-        log.info("Starting execution of method {} with args {{}}"
-                , joinPoint.getSignature().getName(), joinPoint.getArgs());
+        log.info("Starting execution of method {} with args [{}]",
+                joinPoint.getSignature().getName(), joinPoint.getArgs());
     }
 
     @AfterThrowing(value = "serviceLayer()", throwing = "exception")
     public void logCustomExceptions(JoinPoint joinPoint, TelegramBotCustomException exception){
-        log.warn("Method {} threw client exception {} with message [{}]",
+        log.warn("Method {} threw client exception {} with message {}",
                 joinPoint.getSignature().getName(), exception.getClass().getName(), exception.getMessage());
     }
 
     @AfterReturning(pointcut = "serviceLayer()", returning = "res")
     public void logAfterReturning(JoinPoint joinPoint, Object res){
-        log.info("Got result {{}} from method {}",
+        log.info("Got result [{}] from method {}",
                 res, joinPoint.getSignature().getName());
     }
 
