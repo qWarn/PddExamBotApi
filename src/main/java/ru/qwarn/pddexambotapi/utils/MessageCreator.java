@@ -2,106 +2,90 @@ package ru.qwarn.pddexambotapi.utils;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import ru.qwarn.pddexambotapi.dto.TaskDTO;
 import ru.qwarn.pddexambotapi.models.Answer;
 import ru.qwarn.pddexambotapi.models.Question;
-import ru.qwarn.pddexambotapi.models.Selected;
-import ru.qwarn.pddexambotapi.models.User;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static ru.qwarn.pddexambotapi.models.TaskType.SELECTED;
+
 
 @Component
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MessageCreator {
 
+    private static final String FINISH_MESSAGE_TEXT = "Вы совершили %d %s.";
+    private static final String START_TICKET_TEXT = "Вы выбрали билет под номером %d.";
+    private static final String START_SELECTED_TEXT = "Вы выбрали список избранного.";
+    private static final String TICKETS_TEXT = "Выберите номер билета для тренировки:";
+    private static final String NOTIFICATION_TEXT = "Вы не решали билеты уже 2 дня.";
+    private static final String GREETINGS_TEXT = "Привет! \n Этот телеграм бот создан для подготовки к экзамену ПДД. \n Он содержит все 40 актуальных билетов на 2024 год.";
 
-    private static final String FINISH_MESSAGE_TEXT = "Вы совершили %d %s";
-
-    public static SendMessage createTicketsMessage(User user, boolean next) {
-
-        return SendMessage.builder()
-                .chatId(user.getChatId())
-                .text("Выберите номер билета для тренировки:")
-                .replyMarkup(KeyBoardCreator.createInlineKeyBoardMarkupForTickets(next))
-                .build();
+    public static SendMessage createTicketsMessage(long chatId, boolean next) {
+        return createMessage(chatId, TICKETS_TEXT, KeyBoardCreator.createTicketsMarkup(next));
     }
 
-    public static SendMessage createAnswer(long chatId, Question question,
-                                           Optional<Selected> selectedQuestion,
-                                           boolean isCorrect) {
+    public static SendMessage createAnswer(long chatId, Question question) {
+        String text ="Правильный ответ: " + question.getCorrectAnswerNumber() +
+                "\n" + question.getCorrectAnswerExplanation();
 
-        String text = (isCorrect ? "Вы ответили правильно!" + "\n" : "Вы ответили неправильно!" + "\n") +
-                "Правильный ответ: " +
-                question.getCorrectAnswerNumber() + "\n" +
-                question.getCorrectAnswerExplanation();
-
-        return SendMessage.builder()
-                .chatId(chatId)
-                .text(text)
-                .replyMarkup(selectedQuestion.isPresent() ?
-                        KeyBoardCreator.createRemoveQuestionFromSelectedMarkup(question)
-                        : KeyBoardCreator.createAddQuestionToSelectedMarkup(question))
-                .build();
+        return createMessage(chatId, text, KeyBoardCreator.createCorrectAnswerMarkup());
     }
 
     public static SendMessage createFinishMessage(long chatId, int fails) {
-        return SendMessage.builder().text(getFinishMessageText(fails))
-                .replyMarkup(KeyBoardCreator.createInlineMarkupForFinishMessage())
-                .chatId(chatId)
-                .build();
+        String text;
+        if (fails == 0 || fails > 5) {
+            text = String.format(FINISH_MESSAGE_TEXT, fails, "ошибок");
+        }else {
+            text = String.format(FINISH_MESSAGE_TEXT, fails, fails == 1 ? "ошибку" : "ошибки");
+        }
+        return createMessage(chatId, text, KeyBoardCreator.createToTicketsMarkup());
     }
 
-    public static SendMessage createQuestionWithoutMessage(long chatId, Question question, List<Answer> answers) {
+    public static SendMessage createQuestionWithoutMessage(long chatId, Question question, List<Answer> answers, boolean isSelected) {
+        String text = question.getDescription() + "\n" + answers.stream()
+                .map(answer -> answer.getOrderInQuestion() + ". " + answer.getAnswerText() + "\n")
+                .collect(Collectors.joining());
 
-        return SendMessage.builder()
-                .text(question.getDescription() + "\n" + answers.stream()
-                        .map(answer -> answer.getOrderInQuestion() + ". " + answer.getAnswerText() + "\n")
-                        .collect(Collectors.joining())).replyMarkup(KeyBoardCreator.createReplyKeyBoardMarkupForAnswers(answers))
-                .chatId(chatId)
-                .build();
+        return createMessage(chatId, text, KeyBoardCreator.createAnswersMarkup(answers, question, isSelected));
     }
 
-    @SneakyThrows
-    public static SendPhoto createQuestionWithImage(long chatId, Question question, List<Answer> answers) {
+    public static SendMessage createStartMessage(long chatId, TaskDTO task){
+        String text = task.taskType().equals(SELECTED) ? START_SELECTED_TEXT : String.format(START_TICKET_TEXT, task.ticketId());
+        return createMessage(chatId, text, KeyBoardCreator.createStartMarkup());
+    }
 
+    public static SendPhoto createQuestionWithImage(long chatId, Question question, List<Answer> answers, boolean isSelected) {
         return SendPhoto.builder()
                 .photo(new InputFile(question.getImageURI()))
                 .caption(question.getDescription() + "\n" + answers.stream()
                         .map(answer -> answer.getOrderInQuestion() + ". " + answer.getAnswerText() + "\n")
                         .collect(Collectors.joining()))
-                .replyMarkup(KeyBoardCreator.createReplyKeyBoardMarkupForAnswers(answers))
+                .replyMarkup(KeyBoardCreator.createAnswersMarkup(answers, question, isSelected))
                 .chatId(chatId)
                 .build();
     }
 
-    private static String getFinishMessageText(int failsCount) {
-        if (failsCount == 0 || failsCount > 5) {
-            return String.format(FINISH_MESSAGE_TEXT, failsCount, "ошибок.");
-        }
-        return
-                String.format(FINISH_MESSAGE_TEXT,
-                        failsCount,
-                        failsCount == 1 ? "ошибку." : "ошибки.");
+    public static SendMessage createNotificationMessage(long chatId) {
+        return createMessage(chatId, NOTIFICATION_TEXT, KeyBoardCreator.createToTicketsMarkup());
     }
 
-    public static SendMessage createNotificationMessage(User user) {
+    public static SendMessage createGreetingMessage(long chatId) {
+        return createMessage(chatId, GREETINGS_TEXT, KeyBoardCreator.createToTicketsMarkup());
+    }
+
+    private static SendMessage createMessage(long chatId, String text, InlineKeyboardMarkup markup) {
         return SendMessage.builder()
-                .text("Вы не решали билеты уже 2 дня. Пора бы зайти и порешать!")
-                .chatId(user.getChatId())
-                .build();
-    }
-
-    public static SendMessage createMessageForNewUser(long chatId) {
-        return SendMessage.builder().chatId(chatId)
-                .text("Привет! \n Этот телеграм бот создан для подготовки к экзамену ПДД. \n Он содержит все 40 актуальных билетов на 2023 год.")
                 .chatId(chatId)
-                .replyMarkup(KeyBoardCreator.createInlineMarkupForFinishMessage())
+                .text(text)
+                .replyMarkup(markup)
                 .build();
     }
 }
