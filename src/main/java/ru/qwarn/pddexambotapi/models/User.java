@@ -13,16 +13,13 @@ import java.util.List;
 public class User {
 
     @Id
-    @Column(name = "chat_id")
     private long chatId;
 
-    @Column(name = "fails_count")
     private int failsCount;
 
-    @Column(name = "task_type")
-    private String taskType;
+    @Enumerated(EnumType.STRING)
+    private TaskType taskType;
 
-    @Column(name = "last_active")
     private Timestamp lastActive;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
