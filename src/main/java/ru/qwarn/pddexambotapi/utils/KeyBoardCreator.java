@@ -4,9 +4,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import ru.qwarn.pddexambotapi.models.Answer;
 import ru.qwarn.pddexambotapi.models.Question;
 
@@ -14,89 +12,72 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static ru.qwarn.pddexambotapi.constants.CallbackConstants.*;
+
 @Component
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class KeyBoardCreator {
 
-    protected static InlineKeyboardMarkup createInlineKeyBoardMarkupForTickets(boolean next) {
+    protected static InlineKeyboardMarkup createTicketsMarkup(boolean next) {
         int from = next ? 21 : 1;
         int to = from + 20;
 
-        List<List<InlineKeyboardButton>> keyBoard = new ArrayList<>();
-        List<InlineKeyboardButton> buttons = new ArrayList<>();
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> ticketsKeyboard = new ArrayList<>();
+        List<InlineKeyboardButton> ticketsRow = new ArrayList<>();
 
         IntStream.range(from, to).forEach(i -> {
-            InlineKeyboardButton button = new InlineKeyboardButton();
-            button.setText(String.valueOf(i));
-            button.setCallbackData("ticket " + i);
-            buttons.add(button);
+            addKeyToRow(ticketsRow, String.valueOf(i), START_TICKET + " " + i);
             if (i % 5 == 0) {
-                keyBoard.add(new ArrayList<>(buttons));
-                buttons.clear();
+                ticketsKeyboard.add(new ArrayList<>(ticketsRow));
+                ticketsRow.clear();
             }
         });
 
-        InlineKeyboardButton selectedButton = new InlineKeyboardButton();
-        selectedButton.setText("Избранное");
-        selectedButton.setCallbackData("selected");
-        keyBoard.add(List.of(selectedButton));
-
-        InlineKeyboardButton nextThicketsButton = new InlineKeyboardButton();
-
-        if (from == 1) {
-            nextThicketsButton.setText("Далее");
-            nextThicketsButton.setCallbackData("nextTickets");
-        } else {
-            nextThicketsButton.setText("Назад");
-            nextThicketsButton.setCallbackData("prevTickets");
-        }
-
-        keyBoard.add(List.of(nextThicketsButton));
-
-        inlineKeyboardMarkup.setKeyboard(keyBoard);
-        return inlineKeyboardMarkup;
+        return InlineKeyboardMarkup.builder()
+                .keyboard(ticketsKeyboard)
+                .keyboardRow(addKeyToRow(new ArrayList<>(), "Избранное", START_SELECTED))
+                .keyboardRow(addKeyToRow(new ArrayList<>(), !next ? "Далее" : "Назад", !next ? GET_MORE_TICKETS : GET_TICKETS))
+                .build();
     }
 
-    protected static InlineKeyboardMarkup createAddQuestionToSelectedMarkup(Question question) {
-        return getInlineKeyboardMarkup("В избранное", "addToSelected " + question.getId());
+    protected static InlineKeyboardMarkup createToTicketsMarkup() {
+        return InlineKeyboardMarkup.builder()
+                .keyboardRow(addKeyToRow(new ArrayList<>(), "К билетам.", GET_TICKETS)).build();
     }
 
-    protected static InlineKeyboardMarkup createRemoveQuestionFromSelectedMarkup(Question question) {
-        return getInlineKeyboardMarkup("Убрать из избранного", "removeFromSelected " + question.getId());
+    protected static InlineKeyboardMarkup createCorrectAnswerMarkup(){
+        return InlineKeyboardMarkup.builder()
+                .keyboardRow(addKeyToRow(new ArrayList<>(), "Назад", GET_QUESTION)).build();
     }
 
-    protected static InlineKeyboardMarkup createInlineMarkupForFinishMessage() {
-        return getInlineKeyboardMarkup("К билетам.", "backToTickets");
+    protected static InlineKeyboardMarkup createAnswersMarkup(List<Answer> answers, Question question, boolean isSelected) {
+        List<InlineKeyboardButton> answerRow = new ArrayList<>();
+        List<InlineKeyboardButton> specialRow = new ArrayList<>();
+        List<InlineKeyboardButton> returnRow = new ArrayList<>();
+
+        answers.forEach(answer ->
+                addKeyToRow(answerRow, String.valueOf(answer.getOrderInQuestion()), GET_QUESTION + " " + answer.getOrderInQuestion())
+        );
+
+        addKeyToRow(specialRow, "Правильный ответ", GET_ANSWER);
+        addKeyToRow(specialRow, isSelected ? "Убрать из избранного" : "В избранное", isSelected ?
+                REMOVE_FROM_SELECTED + " " + question.getId() : ADD_TO_SELECTED + " " + question.getId());
+        addKeyToRow(returnRow, "К билетам", GET_TICKETS);
+
+        return InlineKeyboardMarkup.builder()
+                .keyboardRow(answerRow)
+                .keyboardRow(specialRow)
+                .keyboardRow(returnRow)
+                .build();
     }
 
-    private static InlineKeyboardMarkup getInlineKeyboardMarkup(String text, String backToTickets) {
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        InlineKeyboardButton selectedButton = new InlineKeyboardButton();
-        selectedButton.setText(text);
-        selectedButton.setCallbackData(backToTickets);
-        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
-        buttons.add(List.of(selectedButton));
-        markup.setKeyboard(buttons);
-        return markup;
+    protected static InlineKeyboardMarkup createStartMarkup(){
+        return InlineKeyboardMarkup.builder()
+                .keyboardRow(addKeyToRow(new ArrayList<>(), "Старт!", GET_QUESTION)).build();
     }
 
-    protected static ReplyKeyboardMarkup createReplyKeyBoardMarkupForAnswers(List<Answer> answers) {
-
-        ReplyKeyboardMarkup markup1 = new ReplyKeyboardMarkup();
-        List<KeyboardRow> keyboardRows = new ArrayList<>();
-
-        answers.forEach(answer -> {
-            KeyboardRow row = new KeyboardRow();
-            row.add(String.valueOf(answer.getOrderInQuestion()));
-            keyboardRows.add(row);
-        });
-
-        KeyboardRow exitButton = new KeyboardRow();
-        exitButton.add("К билетам");
-        keyboardRows.add(exitButton);
-
-        markup1.setKeyboard(keyboardRows);
-        return markup1;
+    private static List<InlineKeyboardButton> addKeyToRow(List<InlineKeyboardButton> row, String text, String callback){
+       row.add(InlineKeyboardButton.builder().text(text).callbackData(callback).build());
+       return row;
     }
 }
