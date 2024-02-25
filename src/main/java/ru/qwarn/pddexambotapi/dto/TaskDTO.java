@@ -1,6 +1,8 @@
 package ru.qwarn.pddexambotapi.dto;
 
-public record TaskDTO(String type, Integer ticketId) {
+import ru.qwarn.pddexambotapi.models.TaskType;
+
+public record TaskDTO(TaskType taskType, Integer ticketId) {
 }
 
 
