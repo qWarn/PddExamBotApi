@@ -22,7 +22,6 @@ public class Selected {
     @ManyToOne
     private Question question;
 
-    @Column(name = "already_was")
     private boolean alreadyWas;
 
 }
