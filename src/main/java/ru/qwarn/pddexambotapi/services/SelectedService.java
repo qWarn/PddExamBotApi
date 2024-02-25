@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.qwarn.pddexambotapi.exceptions.SelectedIsEmptyException;
 import ru.qwarn.pddexambotapi.models.Question;
 import ru.qwarn.pddexambotapi.models.Selected;
+import ru.qwarn.pddexambotapi.models.SelectedId;
 import ru.qwarn.pddexambotapi.models.User;
 import ru.qwarn.pddexambotapi.repositories.SelectedRepository;
 
@@ -21,8 +22,8 @@ public class SelectedService {
     private final Random random;
     private final SelectedRepository selectedRepository;
 
-    public Optional<Selected> getByQuestionAndUser(Question question, User user) {
-        return selectedRepository.findByQuestionAndUser(question, user);
+    public Optional<Selected> getById(long chatId, int questionId) {
+        return selectedRepository.findById(new SelectedId(chatId, questionId));
     }
 
     public List<Selected> getUnresolvedQuestions(User user) {
@@ -30,8 +31,8 @@ public class SelectedService {
     }
 
     @Transactional
-    public void removeFromSelected(Question question, User user){
-        selectedRepository.removeByQuestionAndUser(question, user);
+    public void removeFromSelected(User user, Question question) {
+        selectedRepository.deleteById(new SelectedId(user.getChatId(), question.getId()));
     }
 
     public List<Selected> getAllByUser(User user) {
@@ -40,15 +41,14 @@ public class SelectedService {
 
 
     @Transactional
-    public Optional<Question> generateQuestionFromSelected(User user) {
+    public Optional<Question> getQuestionFromSelected(User user) {
         List<Selected> selectedQuestions = getUnresolvedQuestions(user);
         if (selectedQuestions.isEmpty()) {
             return Optional.empty();
         }
 
-        Selected selectedQuestion = selectedQuestions.get(
-                selectedQuestions.size() == 1 ? 0 : random.nextInt(selectedQuestions.size() - 1));
-        selectedQuestion.setAlreadyWas(true);
+        Selected selectedQuestion =
+                selectedQuestions.get(selectedQuestions.size() == 1 ? 0 : random.nextInt(selectedQuestions.size() - 1));
 
         return Optional.of(selectedQuestion.getQuestion());
     }
@@ -63,17 +63,14 @@ public class SelectedService {
         selectedQuestions.forEach(question -> question.setAlreadyWas(false));
     }
 
-
     @Transactional
-    public void save(User user, Question question){
-        if (getByQuestionAndUser(question, user).isEmpty()) {
+    public void save(User user, Question question) {
+        if (getById(user.getChatId(), question.getId()).isEmpty()) {
             Selected selectedQuestion = new Selected();
             selectedQuestion.setQuestion(question);
             selectedQuestion.setUser(user);
             selectedRepository.save(selectedQuestion);
         }
     }
-
-
 
 }
