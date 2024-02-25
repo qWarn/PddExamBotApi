@@ -13,30 +13,23 @@ import java.util.List;
 public class Question {
 
     @Id
-    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Column(name = "image_uri")
     private String imageURI;
 
-    @Column(name = "description")
     private String description;
 
-    @Column(name = "order_in_ticket")
     private int orderInTicket;
 
-    @Column(name = "correct_answer_number")
     private int correctAnswerNumber;
 
-    @Column(name = "correct_answer_explanation")
     private String correctAnswerExplanation;
 
-    @Column(name = "fails_count")
     private long failsCount;
 
 
-    @JoinColumn(name = "ticket_number" )
     private int ticketNumber;
 
 
