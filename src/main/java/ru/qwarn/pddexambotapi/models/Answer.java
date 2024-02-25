@@ -9,14 +9,11 @@ import lombok.*;
 public class Answer {
 
     @Id
-    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "answer_text")
     private String answerText;
 
-    @Column(name = "order_in_question")
     private int orderInQuestion;
 
     @ToString.Exclude
