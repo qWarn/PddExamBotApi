@@ -4,20 +4,20 @@ spring:
     url:
     username:
     password:
+
   jpa:
     properties:
       hibernate:
         show_sql:
         dialect:
+
   rabbitmq:
     port:
     host:
-
-
-rabbitmq:
-  exchange:
-  queue:
-  routingKey:
+    notification:
+      queue:
+      exchange:
+      routingKey:
 
 springdoc:
   swagger-ui:
@@ -26,3 +26,4 @@ springdoc:
 server:
   error:
     include-message: always
+  port:
